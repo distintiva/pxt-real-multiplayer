@@ -13,7 +13,9 @@ namespace multiplayer {
 
    
     function test() {
+        let sp:Sprite;
 
+        //sp.overlapsWith()
     }
 
     //let socket:Socket;
@@ -70,7 +72,7 @@ namespace multiplayer {
         if (!activate) return;
 
         
-        jacdac.controllerService.stop();
+       // jacdac.controllerService.stop();
         useHWMultiplayer = true;
 
        
