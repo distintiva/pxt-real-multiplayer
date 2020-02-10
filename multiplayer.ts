@@ -440,6 +440,7 @@ namespace multiplayer {
         if (programState === ProgramState.Playing) {
             game.pushScene();
             game.onShade(function () {
+                if (!useHWMultiplayer) return ;
                 screen.printCenter("CONNECTION", 30, 1, dbFont);
                 screen.printCenter("LOST", 46, 1, dbFont);
             });
