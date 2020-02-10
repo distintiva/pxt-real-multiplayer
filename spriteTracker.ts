@@ -67,4 +67,27 @@ namespace multiplayer {
             return this.sprites.find(s => s.data === id);
         }
     }
+
+
+
+    //- Image Syncing
+    export interface IHash {
+        [details: number]: Image;
+    }
+    export let syncedImages: IHash = {};
+    
+    export function getImageId(im: Image): number {
+        let imcrc = 0;
+        for (let f = 0; f < im.height; f++) {
+            for (let c = 0; c < im.width; c++) {
+                let px = im.getPixel(f, c);
+                imcrc += px * c + (c * f);
+            }
+        }
+        return imcrc
+    }
+
+ 
+
+
 }

@@ -11,17 +11,7 @@ namespace multiplayer {
     }
 
 
-    function imageCRC(im: Image): number {
-        let imcrc = 0;
-        for (let f = 0; f < im.height; f++) {
-            for (let c = 0; c < im.width; c++) {
-                let px = im.getPixel(f, c);
-                imcrc += px * c + (c * f);
-            }
-        }
-        return imcrc
-    }
-
+   
     function test() {
 
     }
@@ -58,31 +48,16 @@ namespace multiplayer {
     let flip = true;
     let readyCount = 3000;
 
-    export interface IHash {
-        [details: number]: Image;
-    }
-    let images: IHash = {};
+   
 
-    //% blockId=myFunction
-    //% block="shared image %img=screen_image_picker"
-    export function myFunction(img: Image): void {
-
-        images[imageCRC(img)] = img;
-
-        console.log("IMAGE SHARED:");
-        console.log(imageCRC(img));
-    }
-
-
-
+    
     //% blockId=sharedImgsb
     //% block="shared images %img"
     //% img.shadow="lists_create_with"
     export function sharedImgs(img: Image[]): void {
 
         img.forEach(function (value: Image, index: number) {
-            images[imageCRC(value)] = value;
-            console.log("IMAGEN " + index)
+            syncedImages[getImageId(value)] = value;
         });
 
     }
@@ -113,39 +88,7 @@ namespace multiplayer {
 
     }
 
-    //% blockId=SrpiteChanged
-    //% block="sprite changed %sprite"
-    //% sprite.shadow="variables_get" angleChange.defl=0
-    export function spriteChanged(sprite: Sprite): void {
-
-        if (programState != ProgramState.Playing) return;
-
-
-        if (useHWMultiplayer) {
-
-            const packet = new SocketPacket();
-            packet.arg1 = GameMessage.CreateSprite;
-            packet.arg2 = 0;
-            packet.arg3 = sprite.x;
-            packet.arg4 = sprite.y;
-            packet.arg5 = sprite.vx;
-            packet.arg6 = sprite.vy;
-            packet.arg7 = imageCRC(sprite.image);
-
-
-            socket.sendCustomMessage(packet);
-
-            console.log("Send Create");
-            console.log(sprite.x);
-            console.log(sprite.y);
-            console.log(sprite.vx);
-            console.log(sprite.vy);
-        }
-
-    }
-
-
-
+    
 
 
     //% blockId=onConnected block="on multiplayer connected"
@@ -262,7 +205,7 @@ namespace multiplayer {
                 packet.arg4 = sprite.y;
                 packet.arg5 = sprite.vx;
                 packet.arg6 = sprite.vy;
-                packet.arg7 = imageCRC(sprite.image);
+                packet.arg7 = getImageId(sprite.image);
 
 
                 socket.sendCustomMessage(packet);
@@ -302,7 +245,7 @@ namespace multiplayer {
     function createSprite(x: number, y: number, vx: number, vy: number, imgcrc: number) {
 
         //const sprite = this.st.createSprite(sprites.space.spaceAsteroid2, SpriteKindLegacy.Asteroid, id);
-        const sprite = sprites.create(images[imgcrc], SpriteKind.Enemy);
+        const sprite = sprites.create(syncedImages[imgcrc], SpriteKind.Enemy);
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
