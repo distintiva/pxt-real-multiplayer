@@ -11,7 +11,8 @@
         "main.blocks",
         "main.ts",
         "socket.ts",
-        "multiplayer.ts"
+        "multiplayer.ts",
+        "spriteTracker.ts"
     ],
     "testFiles": [
         "test.ts"
