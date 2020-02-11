@@ -8,6 +8,12 @@ namespace multiplayer {
         CreateSprite = 20
     }
 
+    export enum Players12 {
+        None = 0,
+        Player1 = 1,
+        Player2 = 2
+    }
+
     enum ProgramState {
         Waiting = 0,
         Counting = 1,
@@ -25,7 +31,7 @@ namespace multiplayer {
 
     //let socket:Socket;
     const socket = multiplayer.Socket.getInstance();
-
+ 
     let funcOnConnected: () => void;
     let funcOnMasterLoop: () => void;
 
@@ -195,6 +201,22 @@ namespace multiplayer {
         test();
     }
 
+    //% blockId="spriteOwnsTo" block="sprite %proy=variables_get(sprite1) belongs to $player "
+    export function spriteOwnsTo(proy: Sprite , player: Players12): void {
+        proy.data = player;
+        
+    }
+
+    //% blockId="isSpriteFrom" block="is sprite %proy=variables_get(sprite1) from $player "
+    export function spriteIsFrom(proy: Sprite, player: Players12): boolean {
+       // proy.data = [player, 0];
+        if( proy.data != undefined ){
+            return proy.data=== player;
+        }
+        return false;
+    }
+
+
     //==================================
 
     let offset = 0;
@@ -270,9 +292,9 @@ namespace multiplayer {
     })
 
     sprites.onCreated(SpriteKind.Projectile, function (sprite) {
-        console.log("proyectil");
-        console.log( sprite.id);
+        
         newCreated.push(sprite);
+
 
     })
 
