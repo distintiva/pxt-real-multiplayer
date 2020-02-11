@@ -65,53 +65,16 @@ namespace multiplayer {
 
     //% blockId=multiPlayerStart
     //% block="wait for mutiplayer connection %activate=toggleOnOff"
-    export function multiPlayerStart(activate: boolean): void {
-
-
+    export function waitForConnection(activate: boolean): void {
         
-       // jacdac.controllerService.stop();
         useHWMultiplayer = activate;
 
         if (useHWMultiplayer) {  //-
-            
-            game.onShade(function () {
-                  waitForOtherPlayer();
-            }); 
-
-            socket.onConnect(function () {
-                if (programState === ProgramState.Waiting) {
-                    programState = ProgramState.Counting;
-                    readyCount = 4000;
-                }
-                else if (programState === ProgramState.Disconnected) {
-                    game.popScene();
-                }
-            });
-
-            socket.onDisconnect(function () {
-                if (programState === ProgramState.Playing) {
-                    game.pushScene();
-                    /*game.onShade(function () {
-                        if (!useHWMultiplayer) return ;
-                        screen.printCenter("CONNECTION", 30, 1, dbFont);
-                        screen.printCenter("LOST", 46, 1, dbFont);
-                    });*/
-                    programState = ProgramState.Disconnected;
-                }
-            });  
-
-            socket.onMessage((packet: SocketPacket) => {
-                socketOnMessage(packet);
-            })
-              
+            startMultiplayer();
         } else {
-
-           if (funcOnConnected) funcOnConnected();
-           programState = ProgramState.Playing;
+            startSimulated();    
           
         }
-
-       
 
     }
 
@@ -208,7 +171,43 @@ namespace multiplayer {
     //==================================
 
 
+    function startMultiplayer(){
+        game.onShade(function () {
+            waitForOtherPlayer();
+        });
 
+        socket.onConnect(function () {
+            if (programState === ProgramState.Waiting) {
+                programState = ProgramState.Counting;
+                readyCount = 4000;
+            }
+            else if (programState === ProgramState.Disconnected) {
+                game.popScene();
+            }
+        });
+
+        socket.onDisconnect(function () {
+            if (programState === ProgramState.Playing) {
+                game.pushScene();
+                /*game.onShade(function () {
+                    if (!useHWMultiplayer) return ;
+                    screen.printCenter("CONNECTION", 30, 1, dbFont);
+                    screen.printCenter("LOST", 46, 1, dbFont);
+                });*/
+                programState = ProgramState.Disconnected;
+            }
+        });
+
+        socket.onMessage((packet: SocketPacket) => {
+            socketOnMessage(packet);
+        })
+
+    }
+
+    function startSimulated(){
+        if (funcOnConnected) funcOnConnected();
+        programState = ProgramState.Playing;
+    }
 
 
     /*game.onShade(function () {
