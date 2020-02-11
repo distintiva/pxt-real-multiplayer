@@ -21,7 +21,7 @@ namespace multiplayer {
 
     export class SocketPacket {
         constructor(public readonly data?: Buffer) {
-            if (!this.data) this.data = control.createBuffer(31);
+            if (!this.data) this.data = control.createBuffer(32);
         }
 
         get toString(): string {
