@@ -1,13 +1,18 @@
 //% weight=0 color=#DDB012 icon="\uf0e8" block="Real Multiplayer"
 //% advanced=false
 namespace multiplayer {
-    enum GameMessage {
+    export enum GameMessage {
         Update = 7,
         LaserCreated = 8,
-        AsteroidCreated = 9,
-        AsteroidDestroyed = 10,
         HudUpdate = 11,
         CreateSprite = 20
+    }
+
+    enum ProgramState {
+        Waiting = 0,
+        Counting = 1,
+        Playing = 2,
+        Disconnected = 3
     }
 
 
@@ -21,13 +26,6 @@ namespace multiplayer {
     //let socket:Socket;
     const socket = multiplayer.Socket.getInstance();
 
-    enum ProgramState {
-        Waiting = 0,
-        Counting = 1,
-        Playing = 2,
-        Disconnected = 3
-    }
-
     let funcOnConnected: () => void;
     let funcOnMasterLoop: () => void;
 
@@ -38,15 +36,11 @@ namespace multiplayer {
 
     let programState = ProgramState.Waiting;
 
-    let gameStarted = false;
-
     let useHWMultiplayer = false;
 
     const dbFont = image.doubledFont(image.font8);
 
-    let offset = 0;
-    let flip = true;
-    let readyCount = 3000;
+   
 
    
 
@@ -170,7 +164,9 @@ namespace multiplayer {
 
     //==================================
 
-
+    let offset = 0;
+    let flip = true;
+    let readyCount = 3000;
     function startMultiplayer(){
         game.onShade(function () {
             waitForOtherPlayer();
@@ -210,19 +206,6 @@ namespace multiplayer {
     }
 
 
-    /*game.onShade(function () {
-        if (useHWMultiplayer) {  //-
-          //  waitForOtherPlayer();
-        } else {
-
-            if (!gameStarted) {
-                if (funcOnConnected) funcOnConnected();
-                gameStarted = true;
-                programState = ProgramState.Playing;
-            }
-        }
-    })*/
-
     game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
@@ -232,18 +215,8 @@ namespace multiplayer {
 
                     const sprite: Sprite = newCreated[newCreated.length - 1];
 
-                    const packet = new SocketPacket();
-                    packet.arg1 = GameMessage.CreateSprite;
-                    packet.arg2 = 0;
-                    packet.arg3 = sprite.x;
-                    packet.arg4 = sprite.y;
-                    packet.arg5 = sprite.vx;
-                    packet.arg6 = sprite.vy;
-                    packet.arg7 = getImageId(sprite.image);
-
-
-                    socket.sendCustomMessage(packet);
-
+                    syncSprite(sprite);    
+               
                     newCreated.pop();
                 }
 
@@ -276,19 +249,36 @@ namespace multiplayer {
 
 
 
+    function syncSprite(sprite: Sprite){
 
-    function createSprite(x: number, y: number, vx: number, vy: number, imgcrc: number) {
+        const packet = new SocketPacket();
+        packet.arg1 = GameMessage.CreateSprite;
+        packet.arg2 = 0;
+        packet.arg3 = sprite.x;
+        packet.arg4 = sprite.y;
+        packet.arg5 = sprite.vx;
+        packet.arg6 = sprite.vy;
+        packet.arg7 = getImageId(sprite.image);
+
+        socket.sendCustomMessage(packet);
+
+    }
+
+    //function createSprite(x: number, y: number, vx: number, vy: number, imgcrc: number) {
+        //  createSprite(packet.arg3, packet.arg4, packet.arg5, packet.arg6, packet.arg7);
+    function createSprite(packet: SocketPacket) {
 
         //const sprite = this.st.createSprite(sprites.space.spaceAsteroid2, SpriteKindLegacy.Asteroid, id);
-        const sprite = sprites.create(syncedImages[imgcrc], SpriteKind.Enemy);
+        let spriteImageId = packet.arg7;
+        const sprite = sprites.create(syncedImages[spriteImageId], SpriteKind.Enemy);
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
         //sprite.setKind(SpriteKind.Enemy);
-        sprite.x = x;
-        sprite.y = y;
-        sprite.vx = vx;
-        sprite.vy = vy;
+        sprite.x = packet.arg3;
+        sprite.y = packet.arg4;
+        sprite.vx = packet.arg5;
+        sprite.vy = packet.arg6;
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
@@ -331,9 +321,7 @@ namespace multiplayer {
                 updatePlayerState(packet);
                 break;
             case GameMessage.CreateSprite:
-                createSprite(packet.arg3, packet.arg4, packet.arg5, packet.arg6, packet.arg7);
-                console.log("CREATE: ");
-                console.log(packet.arg7);
+                createSprite(packet);
                 break
             /*case GameMessage.LaserCreated:
                 this.updatePlayerState(packet);

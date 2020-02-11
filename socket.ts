@@ -183,6 +183,7 @@ namespace multiplayer {
             this.sendMessage(SocketMessages.Custom, message);
         }
 
+        
         protected restartPingInterval() {
             if (this.intervalRef !== undefined) clearInterval(this.intervalRef);
 
