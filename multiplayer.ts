@@ -3,7 +3,6 @@
 namespace multiplayer {
     export enum GameMessage {
         Update = 7,
-        LaserCreated = 8,
         HudUpdate = 11,
         CreateSprite = 20
     }
@@ -228,6 +227,11 @@ namespace multiplayer {
     function startMultiplayer(){
         game.onShade(function () {
             waitForOtherPlayer();
+
+            if(programState==ProgramState.Disconnected){
+                screen.printCenter("CONNECTION", 30, 1, dbFont);
+                screen.printCenter("LOST", 46, 1, dbFont);
+            }
         });
 
         socket.onConnect(function () {
@@ -289,22 +293,15 @@ namespace multiplayer {
     let newCreated: Sprite[] = [];
 
     sprites.onCreated(SpriteKind.Enemy, function (sprite) {
-
         newCreated.push(sprite);
-
     })
 
     sprites.onCreated(SpriteKind.Projectile, function (sprite) {
-        
         newCreated.push(sprite);
-
-
     })
 
     sprites.onCreated(SpriteKind.Food, function (sprite) {
-
         newCreated.push(sprite);
-
     })
 
 
@@ -320,17 +317,16 @@ namespace multiplayer {
         packet.arg5 = sprite.vx;
         packet.arg6 = sprite.vy;
         packet.arg7 = sprite.data;
+        
         packet.arg9_32 = getImageId(sprite.image);
+        packet.arg10_32 = sprite.id;
 
         socket.sendCustomMessage(packet);
 
     }
 
-    //function createSprite(x: number, y: number, vx: number, vy: number, imgcrc: number) {
-        //  createSprite(packet.arg3, packet.arg4, packet.arg5, packet.arg6, packet.arg7);
     function createSprite(packet: SocketPacket) {
 
-        //const sprite = this.st.createSprite(sprites.space.spaceAsteroid2, SpriteKindLegacy.Asteroid, id);
         let spriteImageId = packet.arg9_32;
         const sprite = sprites.create(syncedImages[spriteImageId], SpriteKind.Enemy);
 
@@ -342,6 +338,8 @@ namespace multiplayer {
         sprite.vx = packet.arg5;
         sprite.vy = packet.arg6;
         sprite.data = packet.arg7;
+        
+        sprite.id = packet.arg10_32;
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
@@ -393,9 +391,10 @@ namespace multiplayer {
     function updateHUD(packet: SocketPacket){
 
         info.setScore(packet.arg2);
-        info.setLife(packet.arg3);
+        if (packet.arg3) info.setLife(packet.arg3);
         info.player2.setScore(packet.arg4);
-        info.player2.setLife(packet.arg5);
+        
+        if (packet.arg3) info.player2.setLife(packet.arg5);
 
         
     }
@@ -425,24 +424,7 @@ namespace multiplayer {
             case GameMessage.HudUpdate:
                 updateHUD(packet);
                 break;    
-            /*case GameMessage.LaserCreated:
-                this.updatePlayerState(packet);
-                if (isPlayerOne()) {
-                    this.createLaser(SpriteKindLegacy.Laser2, this.ship2, packet.arg5);
-                }
-                else {
-                    this.createLaser(SpriteKindLegacy.Laser1, this.ship1, packet.arg5);
-                }
-                break;
-            case GameMessage.AsteroidCreated:
-                this.createAsteroid(packet.arg2, packet.arg3)
-                break;
-            case GameMessage.AsteroidDestroyed:
-                this.handleCollision(packet.arg2, packet.arg3, packet.arg4 === 1)
-                break;
-            case GameMessage.HudUpdate:
-                this.updateHUD(packet);
-                break;*/
+           
         }
     }
 
@@ -494,15 +476,7 @@ namespace multiplayer {
         }
     }
 
-    
-
-    enum SpriteKindLegacy {
-        Player1,
-        Player2,
-        Laser1,
-        Laser2,
-        Asteroid
-    }
+   
 
     function isPlayerOne() {
         if (!useHWMultiplayer) return true;
