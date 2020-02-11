@@ -227,27 +227,28 @@ namespace multiplayer {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
-            if (newCreated.length) {
-                console.log("Sprites created " + newCreated.length)
+            
+                while (newCreated.length){
 
-                const sprite: Sprite = newCreated[newCreated.length - 1];
+                    const sprite: Sprite = newCreated[newCreated.length - 1];
 
-                const packet = new SocketPacket();
-                packet.arg1 = GameMessage.CreateSprite;
-                packet.arg2 = 0;
-                packet.arg3 = sprite.x;
-                packet.arg4 = sprite.y;
-                packet.arg5 = sprite.vx;
-                packet.arg6 = sprite.vy;
-                packet.arg7 = getImageId(sprite.image);
-
-
-                socket.sendCustomMessage(packet);
-
-                newCreated.pop();
+                    const packet = new SocketPacket();
+                    packet.arg1 = GameMessage.CreateSprite;
+                    packet.arg2 = 0;
+                    packet.arg3 = sprite.x;
+                    packet.arg4 = sprite.y;
+                    packet.arg5 = sprite.vx;
+                    packet.arg6 = sprite.vy;
+                    packet.arg7 = getImageId(sprite.image);
 
 
-            }
+                    socket.sendCustomMessage(packet);
+
+                    newCreated.pop();
+                }
+
+
+            
         }
 
     });
@@ -359,7 +360,7 @@ namespace multiplayer {
 
     function waitForOtherPlayer() {
         if (programState === ProgramState.Waiting) {
-console.log("wait");
+
             screen.printCenter(waitTitle, 10, waitTitleColor, image.font12);
             screen.printCenter(waitSubtitle, 26, waitTitleColor, image.font12);
 
