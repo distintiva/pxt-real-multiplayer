@@ -34,9 +34,7 @@ namespace multiplayer {
     let waitTitle = "", waitSubtitle = "", waitTitleColor = 1;
     let waitMessageText = "", waitMessageColor = 8, waitProgressBarColor = 8;
 
-
     let pl1: Sprite, pl2: Sprite;
-    let _vx: number = 100, _vy: number = 100;
 
     let programState = ProgramState.Waiting;
 
@@ -69,11 +67,49 @@ namespace multiplayer {
     //% block="wait for mutiplayer connection %activate=toggleOnOff"
     export function multiPlayerStart(activate: boolean): void {
 
-        if (!activate) return;
 
         
        // jacdac.controllerService.stop();
-        useHWMultiplayer = true;
+        useHWMultiplayer = activate;
+
+        if (useHWMultiplayer) {  //-
+            
+            game.onShade(function () {
+                  waitForOtherPlayer();
+            }); 
+
+            socket.onConnect(function () {
+                if (programState === ProgramState.Waiting) {
+                    programState = ProgramState.Counting;
+                    readyCount = 4000;
+                }
+                else if (programState === ProgramState.Disconnected) {
+                    game.popScene();
+                }
+            });
+
+            socket.onDisconnect(function () {
+                if (programState === ProgramState.Playing) {
+                    game.pushScene();
+                    /*game.onShade(function () {
+                        if (!useHWMultiplayer) return ;
+                        screen.printCenter("CONNECTION", 30, 1, dbFont);
+                        screen.printCenter("LOST", 46, 1, dbFont);
+                    });*/
+                    programState = ProgramState.Disconnected;
+                }
+            });  
+
+            socket.onMessage((packet: SocketPacket) => {
+                socketOnMessage(packet);
+            })
+              
+        } else {
+
+           if (funcOnConnected) funcOnConnected();
+           programState = ProgramState.Playing;
+          
+        }
 
        
 
@@ -155,21 +191,18 @@ namespace multiplayer {
     export function movePlayers(player1: Sprite, player2: Sprite, vx: number = 100, vy: number = 100): void {
         pl1 = player1;
         pl2 = player2;
-        _vx = vx;
-        _vy = vy;
 
         if (isPlayerOne()) {
-            controller.moveSprite(pl1, _vx, _vy);
+            controller.moveSprite(pl1, vx, vy);
         } else {
-            controller.moveSprite(pl2, _vx, _vy);
+            controller.moveSprite(pl2, vx, vy);
         }
 
         //- on simulator mode
         if (!useHWMultiplayer) {
-            controller.player2.moveSprite(pl2, _vx, _vy);
+            controller.player2.moveSprite(pl2, vx, vy);
         }
         test();
-
     }
 
     //==================================
@@ -178,9 +211,9 @@ namespace multiplayer {
 
 
 
-    game.onShade(function () {
-        if (useHWMultiplayer) {
-            waitForOtherPlayer();
+    /*game.onShade(function () {
+        if (useHWMultiplayer) {  //-
+          //  waitForOtherPlayer();
         } else {
 
             if (!gameStarted) {
@@ -189,7 +222,7 @@ namespace multiplayer {
                 programState = ProgramState.Playing;
             }
         }
-    })
+    })*/
 
     game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
@@ -288,7 +321,11 @@ namespace multiplayer {
         otherSprite.vy = packet.arg5;
     }
 
-    socket.onMessage((packet: SocketPacket) => {
+   
+
+
+
+    function socketOnMessage(packet: SocketPacket){
         switch (packet.arg1) {
             case GameMessage.Update:
                 updatePlayerState(packet);
@@ -317,17 +354,13 @@ namespace multiplayer {
                 this.updateHUD(packet);
                 break;*/
         }
-    })
-
-
-
-
+    }
 
 
 
     function waitForOtherPlayer() {
         if (programState === ProgramState.Waiting) {
-
+console.log("wait");
             screen.printCenter(waitTitle, 10, waitTitleColor, image.font12);
             screen.printCenter(waitSubtitle, 26, waitTitleColor, image.font12);
 
@@ -358,12 +391,12 @@ namespace multiplayer {
             }
 
             if (isPlayerOne()) {
-                screen.printCenter("GET READY 1", 26, 1, dbFont);
-                // controller.moveSprite(pl1,_vx, _vy);
+                screen.printCenter("PLAYER 1", 26, 1, dbFont);
+
 
             } else {
-                screen.printCenter("GET READY 2", 26, 1, dbFont);
-                //   controller.moveSprite(pl2, _vx, _vy);
+                screen.printCenter("PLAYER 2", 26, 1, dbFont);
+
 
             }
 
@@ -371,27 +404,7 @@ namespace multiplayer {
         }
     }
 
-    socket.onConnect(function () {
-        if (programState === ProgramState.Waiting) {
-            programState = ProgramState.Counting;
-            readyCount = 4000;
-        }
-        else if (programState === ProgramState.Disconnected) {
-            game.popScene();
-        }
-    });
-
-    socket.onDisconnect(function () {
-        if (programState === ProgramState.Playing) {
-            game.pushScene();
-            /*game.onShade(function () {
-                if (!useHWMultiplayer) return ;
-                screen.printCenter("CONNECTION", 30, 1, dbFont);
-                screen.printCenter("LOST", 46, 1, dbFont);
-            });*/
-            programState = ProgramState.Disconnected;
-        }
-    });
+    
 
     enum SpriteKindLegacy {
         Player1,
