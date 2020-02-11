@@ -75,6 +75,8 @@ namespace multiplayer {
         [details: number]: Image;
     }
     export let syncedImages: IHash = {};
+
+    
     
     export function getImageId(im: Image): number {
         let imcrc = 0;

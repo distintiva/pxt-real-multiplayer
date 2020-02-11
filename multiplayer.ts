@@ -228,10 +228,10 @@ namespace multiplayer {
         game.onShade(function () {
             waitForOtherPlayer();
 
-            if(programState==ProgramState.Disconnected){
+           /* if(programState==ProgramState.Disconnected){
                 screen.printCenter("CONNECTION", 30, 1, dbFont);
                 screen.printCenter("LOST", 46, 1, dbFont);
-            }
+            }*/
         });
 
         socket.onConnect(function () {
@@ -247,11 +247,11 @@ namespace multiplayer {
         socket.onDisconnect(function () {
             if (programState === ProgramState.Playing) {
                 game.pushScene();
-                /*game.onShade(function () {
+                game.onShade(function () {
                     if (!useHWMultiplayer) return ;
                     screen.printCenter("CONNECTION", 30, 1, dbFont);
                     screen.printCenter("LOST", 46, 1, dbFont);
-                });*/
+                });
                 programState = ProgramState.Disconnected;
             }
         });
@@ -279,6 +279,7 @@ namespace multiplayer {
 
                     const sprite: Sprite = newCreated[newCreated.length - 1];
 
+                    console.log("created id:" + sprite.id);
                     syncSprite(sprite);    
                
                     newCreated.pop();
@@ -327,8 +328,17 @@ namespace multiplayer {
 
     function createSprite(packet: SocketPacket) {
 
+        //- exists sprite with this id ?
+
+        //sprites. .find(s => s.data === id);
+        if( sprites.allOfKind(packet.arg2).find(s => s.id === packet.arg10_32) ){
+            console.log("EXISTS " + packet.arg10_32);
+            return;
+        }
+
+
         let spriteImageId = packet.arg9_32;
-        const sprite = sprites.create(syncedImages[spriteImageId], SpriteKind.Enemy);
+        const sprite = sprites.create(syncedImages[spriteImageId] );
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
@@ -358,11 +368,23 @@ namespace multiplayer {
         packet.arg4 = playerSprite.vx;
         packet.arg5 = playerSprite.vy;
 
-        if (packet.toString == lastPlayerPacket ) return;
+        
+        /*console.log(lastPlayerPacket);
+        console.log("--");
+        console.log(packet.toString);
+        console.log("--");
+        */
+        
+        if (packet.toString == lastPlayerPacket ) {
+            console.log("MISMO");
+            return;
+        }    
+
+        lastPlayerPacket = packet.toString;
 
         socket.sendCustomMessage(packet);
         
-        lastPlayerPacket = packet.toString;
+        
 
 
         if (isPlayerOne()) {
@@ -381,10 +403,11 @@ namespace multiplayer {
         packet.arg5 = info.player2.life();
 
         if (packet.toString == lastHUDPacket) return;
-
+        lastHUDPacket = packet.toString;
+        
         socket.sendCustomMessage(packet);
 
-        lastHUDPacket = packet.toString;
+       
 
     }
 

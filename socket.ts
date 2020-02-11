@@ -237,7 +237,7 @@ namespace multiplayer {
                 return;
             }
 
-            console.log("Got Packet: " + packet.messageType)
+          console.log("Got Packet: " + packet.arg1);
 
             this.lastReceivedTime = control.millis();
 
