@@ -21,9 +21,13 @@ namespace multiplayer {
 
     export class SocketPacket {
         constructor(public readonly data?: Buffer) {
-            if (!this.data) this.data = control.createBuffer(25);
+            if (!this.data) this.data = control.createBuffer(32);
         }
 
+        get toString(): string {
+            return this.data.toHex();
+        }
+        
         get messageType(): SocketMessages {
             return this.data[0];
         }
@@ -103,12 +107,38 @@ namespace multiplayer {
         set arg6(val: number) {
             this.data.setNumber(NumberFormat.Int16LE, 17, val);
         }
+
         get arg7() {
-            return this.data.getNumber(NumberFormat.UInt32LE, 19)
+            return this.data.getNumber(NumberFormat.Int16LE, 19)
         }
 
         set arg7(val: number) {
-            this.data.setNumber(NumberFormat.UInt32LE, 19, val);
+            this.data.setNumber(NumberFormat.Int16LE, 19, val);
+        }
+
+        get arg8() {
+            return this.data.getNumber(NumberFormat.Int16LE, 21)
+        }
+
+        set arg8(val: number) {
+            this.data.setNumber(NumberFormat.Int16LE, 21, val);
+        }
+
+
+        get arg9_32() {
+            return this.data.getNumber(NumberFormat.UInt32LE, 23)
+        }
+
+        set arg9_32(val: number) {
+            this.data.setNumber(NumberFormat.UInt32LE, 23, val);
+        }
+
+        get arg10_32() {
+            return this.data.getNumber(NumberFormat.UInt32LE, 27)
+        }
+
+        set arg10_32(val: number) {
+            this.data.setNumber(NumberFormat.UInt32LE, 27, val);
         }
 
     }
