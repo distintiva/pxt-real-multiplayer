@@ -40,7 +40,7 @@ namespace multiplayer {
 
     const dbFont = image.doubledFont(image.font8);
 
-   
+    let player2SimulatedButtons = false;
 
    
 
@@ -67,6 +67,20 @@ namespace multiplayer {
             startMultiplayer();
         } else {
             startSimulated();    
+
+            controller.player2.onButtonEvent(ControllerButton.A, ControllerButtonEvent.Pressed, function () {
+
+               controller.A.setPressed(true);
+               controller.A.setPressed(false);
+               
+            })
+
+            controller.player2.onButtonEvent(ControllerButton.B, ControllerButtonEvent.Pressed, function () {
+
+                controller.B.setPressed(true);
+                controller.B.setPressed(false);
+
+            })
           
         }
 
@@ -80,6 +94,25 @@ namespace multiplayer {
             return pl1;
         }
         return pl2;
+
+    }
+
+    //% blockId=isPlayer1
+    //% block="is player 1"
+    export function isPlayer1(): boolean {
+
+        if(!useHWMultiplayer){
+            
+            if (controller.player2.A.isPressed() || controller.player2.B.isPressed() ){
+                              
+                
+                return false;
+                
+            }
+           
+        }
+
+        return isPlayerOne();
 
     }
 
@@ -203,6 +236,8 @@ namespace multiplayer {
     function startSimulated(){
         if (funcOnConnected) funcOnConnected();
         programState = ProgramState.Playing;
+
+       
     }
 
 
@@ -235,7 +270,8 @@ namespace multiplayer {
     })
 
     sprites.onCreated(SpriteKind.Projectile, function (sprite) {
-
+        console.log("proyectil");
+        console.log( sprite.id);
         newCreated.push(sprite);
 
     })
