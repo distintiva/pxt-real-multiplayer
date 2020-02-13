@@ -1,3 +1,17 @@
+/** ********************************************************
+ * By Distintiva Solutions (www.distintivasolutions.com)
+ * Jose Carlos (info@distintivasolutions.com)
+ * 
+ * 
+ * https://github.com/distintiva/pxt-real-multiplayer
+ * 
+ * 
+ * 
+ * Based on the code provided by Richard Knoll
+ * https://forum.makecode.com/t/hardware-multiplayer-game/132
+ * 
+ ***********************************************************/
+
 //% weight=0 color=#DDB012 icon="\uf0e8" block="Real Multiplayer"
 //% advanced=false
 namespace multiplayer {
@@ -21,34 +35,24 @@ namespace multiplayer {
         Disconnected = 3
     }
 
-
    
-    function test() {
-        let sp:Sprite;
-
-        //sp.overlapsWith()
-    }
-
-    //let socket:Socket;
     const socket = multiplayer.Socket.getInstance();
  
-    let funcOnConnected: () => void;
+    let funcOnConnected:  () => void;
     let funcOnMasterLoop: () => void;
 
+    //- Wait screen
     let waitTitle = "", waitSubtitle = "", waitTitleColor = 1;
     let waitMessageText = "", waitMessageColor = 8, waitProgressBarColor = 8;
 
+    //- Player 1 and Player 2 srpites
     let pl1: Sprite, pl2: Sprite;
 
     let programState = ProgramState.Waiting;
 
     let useHWMultiplayer = false;
-
     const dbFont = image.doubledFont(image.font8);
-
-    let player2SimulatedButtons = false;
-
-   
+ 
 
     
     //% blockId=sharedImgsb
@@ -61,7 +65,6 @@ namespace multiplayer {
         });
 
     }
-
 
     //% blockId=multiPlayerStart
     //% block="wait for mutiplayer connection %activate=toggleOnOff"
@@ -114,8 +117,6 @@ namespace multiplayer {
 
         return isPlayerOne();
     }
-
-    
 
 
     //% blockId=onConnected block="on multiplayer connected"
@@ -191,7 +192,6 @@ namespace multiplayer {
         if (!useHWMultiplayer) {
             controller.player2.moveSprite(pl2, vx, vy);
         }
-        test();
     }
 
     //% blockId="spriteOwnsTo" block="sprite %proy=variables_get(sprite1) belongs to $player "
@@ -213,7 +213,7 @@ namespace multiplayer {
     }
 
 
-    //==================================
+    //===================================================================================
 
     let offset = 0;
     let flip = true;
@@ -222,10 +222,6 @@ namespace multiplayer {
         game.onShade(function () {
             waitForOtherPlayer();
 
-           /* if(programState==ProgramState.Disconnected){
-                screen.printCenter("CONNECTION", 30, 1, dbFont);
-                screen.printCenter("LOST", 46, 1, dbFont);
-            }*/
         });
 
         socket.onConnect(function () {
@@ -259,8 +255,6 @@ namespace multiplayer {
     function startSimulated(){
         if (funcOnConnected) funcOnConnected();
         programState = ProgramState.Playing;
-
-       
     }
 
 
@@ -278,9 +272,6 @@ namespace multiplayer {
                
                     newCreated.pop();
                 }
-
-
-            
         }
 
     });
@@ -319,7 +310,6 @@ namespace multiplayer {
         
         if(sp!=undefined && sp )sp.destroy();
 
-
     }
 
 
@@ -345,7 +335,6 @@ namespace multiplayer {
 
         //- exists sprite with this id ?
 
-        //sprites. .find(s => s.data === id);
         if( sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg10_32) ){
             //console.log("EXISTS " + packet.arg10_32);
             return;
@@ -368,9 +357,6 @@ namespace multiplayer {
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
-        // spriteT = sprite;
-
-
     }
 
     let lastPlayerPacket: string = "";
@@ -384,24 +370,13 @@ namespace multiplayer {
         packet.arg4 = playerSprite.vx;
         packet.arg5 = playerSprite.vy;
 
-        
-        /*console.log(lastPlayerPacket);
-        console.log("--");
-        console.log(packet.toString);
-        console.log("--");
-        */
-        
         if (packet.toString == lastPlayerPacket ) {
-          //  console.log("MISMO");
             return;
         }    
 
         lastPlayerPacket = packet.toString;
 
         socket.sendCustomMessage(packet);
-        
-        
-
 
         if (isPlayerOne()) {
             sendHUD();
@@ -422,8 +397,6 @@ namespace multiplayer {
         lastHUDPacket = packet.toString;
         
         socket.sendCustomMessage(packet);
-
-       
 
     }
 
@@ -495,9 +468,6 @@ namespace multiplayer {
             readyCount -= game.eventContext().deltaTimeMillis;
             if (readyCount <= 0) {
 
-                //const g = new multiplayer.Game(socket);
-                //g.startGame();
-                //startGame();
                 if(funcOnConnected) funcOnConnected();
                 programState = ProgramState.Playing;
                 return;
@@ -506,12 +476,8 @@ namespace multiplayer {
 
             if (isPlayerOne()) {
                 screen.printCenter("PLAYER 1", 26, 1, dbFont);
-
-
             } else {
                 screen.printCenter("PLAYER 2", 26, 1, dbFont);
-
-
             }
 
             screen.printCenter("" + Math.idiv(readyCount, 1000), 80, 1, dbFont);
