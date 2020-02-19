@@ -36,10 +36,10 @@ namespace multiplayer {
         Disconnected = 3
     }
 
-   
+
     const socket = multiplayer.Socket.getInstance();
- 
-    let funcOnConnected:  () => void;
+
+    let funcOnConnected: () => void;
     let funcOnMasterLoop: () => void;
 
     //- Wait screen
@@ -47,15 +47,15 @@ namespace multiplayer {
     let waitMessageText = "", waitMessageColor = 8, waitProgressBarColor = 8;
 
     //- Player 1 and Player 2 srpites
-    let pl1: Sprite = null, pl2: Sprite=null;
+    let pl1: Sprite = null, pl2: Sprite = null;
 
     let programState = ProgramState.Waiting;
 
     let useHWMultiplayer = false;
     const dbFont = image.doubledFont(image.font8);
- 
 
-    
+
+
     //% blockId=sharedImgsb
     //% block="shared images %img"
     //% img.shadow="lists_create_with"
@@ -70,19 +70,19 @@ namespace multiplayer {
     //% blockId=multiPlayerStart
     //% block="wait for mutiplayer connection %activate=toggleOnOff"
     export function waitForConnection(activate: boolean): void {
-        
+
         useHWMultiplayer = activate;
 
         if (useHWMultiplayer) {  //-
             startMultiplayer();
         } else {
-            startSimulated();    
+            startSimulated();
 
             controller.player2.onButtonEvent(ControllerButton.A, ControllerButtonEvent.Pressed, function () {
 
-               controller.A.setPressed(true);
-               controller.A.setPressed(false);
-               
+                controller.A.setPressed(true);
+                controller.A.setPressed(false);
+
             })
 
             controller.player2.onButtonEvent(ControllerButton.B, ControllerButtonEvent.Pressed, function () {
@@ -91,7 +91,7 @@ namespace multiplayer {
                 controller.B.setPressed(false);
 
             })
-          
+
         }
 
     }
@@ -110,8 +110,8 @@ namespace multiplayer {
     //% blockId=isPlayer1
     //% block="is player 1"
     export function isPlayer1(): boolean {
-        if(!useHWMultiplayer){
-            if (controller.player2.A.isPressed() || controller.player2.B.isPressed() ){
+        if (!useHWMultiplayer) {
+            if (controller.player2.A.isPressed() || controller.player2.B.isPressed()) {
                 return false;
             }
         }
@@ -153,9 +153,9 @@ namespace multiplayer {
     //% text.defl=""
     //% sub.defl=""
     //% expandableArgumentMode="toggle"
-    export function drawTitle(text: string, sub: string=null, color: number=1): void {
+    export function drawTitle(text: string, sub: string = null, color: number = 1): void {
         waitTitle = text;
-        
+
         if (sub == null) sub = "";
         waitSubtitle = sub;
         waitTitleColor = color;
@@ -198,19 +198,19 @@ namespace multiplayer {
     }
 
     //% blockId="spriteOwnsTo" block="sprite %proy=variables_get(sprite1) belongs to $player "
-    export function spriteOwnsTo(proy: Sprite , player: Players12): void {
+    export function spriteOwnsTo(proy: Sprite, player: Players12): void {
         proy.data = player;
-        
+
     }
 
     //% blockId="isSpriteFrom" block="is sprite %proy=variables_get(sprite1) from $player "
     export function spriteIsFrom(proy: Sprite, player: Players12): boolean {
-       
-       //-main process is allways controlled  by player 1
-       if(useHWMultiplayer && !isPlayerOne() ) return false;
 
-        if( proy.data != undefined ){
-            return proy.data=== player;
+        //-main process is allways controlled  by player 1
+        if (useHWMultiplayer && !isPlayerOne()) return false;
+
+        if (proy.data != undefined) {
+            return proy.data === player;
         }
         return false;
     }
@@ -219,9 +219,9 @@ namespace multiplayer {
     //%  block="sync sprite %proy=variables_get(sprite1) "
     export function syncThisSprite(sp: Sprite): void {
 
-       syncSprite(sp);
+        syncSprite(sp);
 
-       
+
     }
 
 
@@ -233,25 +233,25 @@ namespace multiplayer {
     let readyCount = 3000;
     let sceneDisconnected = false; //- if there is any scene to print disconnection
 
-    function startMultiplayer(){
+    function startMultiplayer() {
         game.onShade(function () {
             waitForOtherPlayer();
 
-            if (useHWMultiplayer && programState === ProgramState.Disconnected ){
-                if (!sceneDisconnected){
+            if (useHWMultiplayer && programState === ProgramState.Disconnected) {
+                if (!sceneDisconnected) {
                     game.pushScene();
                     sceneDisconnected = true;
                     //scene.setBackgroundColor(6);
-                    
-                    const imDisc: Image = image.create(screen.width ,screen.height);
+
+                    const imDisc: Image = image.create(screen.width, screen.height);
                     imDisc.fill(0);
                     imDisc.printCenter("CONNECTION", 30, 1, dbFont);
                     imDisc.printCenter("LOST", 46, 1, dbFont);
                     scene.setBackgroundImage(imDisc);
                 }
-                
-               
-            }   
+
+
+            }
 
 
         });
@@ -263,36 +263,36 @@ namespace multiplayer {
             }
             else if (programState === ProgramState.Disconnected) {
                 programState = ProgramState.Playing;
-                
-                if (sceneDisconnected){
+
+                if (sceneDisconnected) {
                     sceneDisconnected = false;
                     game.popScene();
                 }
-                
+
             }
         });
 
         socket.onDisconnect(function () {
-           
+
             if (programState === ProgramState.Playing) {
-                
+
                 programState = ProgramState.Disconnected;
 
-                if (sceneDisconnected){
-                   // game.popScene();
+                if (sceneDisconnected) {
+                    // game.popScene();
                 }
-               /* sceneDisconnected = true;
-                game.pushScene();
-           
-                game.onShade(function () {
-                    if (!useHWMultiplayer) return ;
-                    //console.log("onDisconn Shade ");
-                    screen.printCenter("CONNECTION", 30, 1, dbFont);
-                    screen.printCenter("LOST", 46, 1, dbFont);
-                });
-                programState = ProgramState.Disconnected;
-                */
-                
+                /* sceneDisconnected = true;
+                 game.pushScene();
+            
+                 game.onShade(function () {
+                     if (!useHWMultiplayer) return ;
+                     //console.log("onDisconn Shade ");
+                     screen.printCenter("CONNECTION", 30, 1, dbFont);
+                     screen.printCenter("LOST", 46, 1, dbFont);
+                 });
+                 programState = ProgramState.Disconnected;
+                 */
+
             }
         });
 
@@ -302,7 +302,7 @@ namespace multiplayer {
 
     }
 
-    function startSimulated(){
+    function startSimulated() {
         if (funcOnConnected) funcOnConnected();
         programState = ProgramState.Playing;
     }
@@ -341,29 +341,29 @@ namespace multiplayer {
     })
 
     sprites.onDestroyed(SpriteKind.Enemy, function (sprite) {
-        sendDestroy( sprite );
+        sendDestroy(sprite);
     })
 
-    function sendDestroy(sprite:Sprite){
-        
+    function sendDestroy(sprite: Sprite) {
+
         const packet = new SocketPacket();
         packet.arg1 = GameMessage.DestroySprite;
-        packet.arg2 = sprite.kind() ;
+        packet.arg2 = sprite.kind();
         packet.arg3 = sprite.id;
-       
+
         socket.sendCustomMessage(packet);
     }
 
-    function destroySprite(packet: SocketPacket){
-        
-        const sp = sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg3) ;
-        
-        if(sp!=undefined && sp )sp.destroy();
+    function destroySprite(packet: SocketPacket) {
+
+        const sp = sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg3);
+
+        if (sp != undefined && sp) sp.destroy();
 
     }
 
 
-    function syncSprite(sprite: Sprite){
+    function syncSprite(sprite: Sprite) {
 
         const packet = new SocketPacket();
         packet.arg1 = GameMessage.CreateSprite;
@@ -373,34 +373,34 @@ namespace multiplayer {
         packet.arg5 = sprite.vx;
         packet.arg6 = sprite.vy;
         packet.arg7 = sprite.data;
-        
 
-        
+
+
 
         packet.arg9_32 = getImageId(sprite.image);
         packet.arg10_32 = sprite.id;
 
         const packet2 = new SocketPacket();
         packet2.arg1 = GameMessage.SyncSprite;
-        packet2.add16( sprite.kind() );
-        packet2.add16( sprite.id );
-        packet2.add8( sprite.x );
-        packet2.add8(sprite.y );
+        packet2.add16(sprite.kind());
+        packet2.add16(sprite.id);
+        packet2.add8(sprite.x);
+        packet2.add8(sprite.y);
 
-        
+
         socket.sendCustomMessage(packet2);
 
     }
 
-    function getSyncSprite(packet: SocketPacket){
+    function getSyncSprite(packet: SocketPacket) {
         const kind = packet.get16();
         const id = packet.get16();
         const x = packet.get8();
         const y = packet.get8();
 
-        const sp:Sprite = sprites.allOfKind(kind).find(s => s.id == id);
+        const sp: Sprite = sprites.allOfKind(kind).find(s => s.id == id);
 
-        if (sp == undefined ) return;
+        if (sp == undefined) return;
 
         sp.setPosition(x, y);
 
@@ -412,14 +412,14 @@ namespace multiplayer {
 
         //- exists sprite with this id ?
 
-        if( sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg10_32) ){
+        if (sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg10_32)) {
             //console.log("EXISTS " + packet.arg10_32);
             return;
         }
 
 
         let spriteImageId = packet.arg9_32;
-        const sprite = sprites.create(syncedImages[spriteImageId] );
+        const sprite = sprites.create(syncedImages[spriteImageId]);
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
 
@@ -429,7 +429,7 @@ namespace multiplayer {
         sprite.vx = packet.arg5;
         sprite.vy = packet.arg6;
         sprite.data = packet.arg7;
-        
+
         sprite.id = packet.arg10_32;
 
         sprite.setFlag(SpriteFlag.AutoDestroy, true);
@@ -439,17 +439,17 @@ namespace multiplayer {
     let lastPlayerPacket: string = "";
     function sendPlayerState(kind = GameMessage.Update, arg = 0) {
         const playerSprite = isPlayerOne() ? pl1 : pl2;
-      
-        const packet = new SocketPacket(   );
+
+        const packet = new SocketPacket();
         packet.arg1 = kind;
         packet.arg2 = playerSprite.x;
         packet.arg3 = playerSprite.y;
         packet.arg4 = playerSprite.vx;
         packet.arg5 = playerSprite.vy;
 
-        if (packet.toString == lastPlayerPacket ) {
+        if (packet.toString == lastPlayerPacket) {
             return;
-        }    
+        }
 
         lastPlayerPacket = packet.toString;
 
@@ -461,9 +461,9 @@ namespace multiplayer {
     }
 
     let lastHUDPacket: string = "";
-    function sendHUD(){
-       
-        const packet = new SocketPacket(  control.createBuffer(17)  );
+    function sendHUD() {
+
+        const packet = new SocketPacket(control.createBuffer(17));
         packet.arg1 = GameMessage.HudUpdate;
         packet.arg2 = info.score();
         packet.arg3 = info.life();
@@ -472,23 +472,23 @@ namespace multiplayer {
 
         if (packet.toString == lastHUDPacket) return;
         lastHUDPacket = packet.toString;
-        
+
         socket.sendCustomMessage(packet);
 
     }
 
-    function updateHUD(packet: SocketPacket){
+    function updateHUD(packet: SocketPacket) {
 
         info.setScore(packet.arg2);
         if (packet.arg3) info.setLife(packet.arg3);
         info.player2.setScore(packet.arg4);
-        
+
         if (packet.arg3) info.player2.setLife(packet.arg5);
 
-        
+
     }
 
-    
+
     function updatePlayerState(packet: SocketPacket) {
 
         const otherSprite = isPlayerOne() ? pl2 : pl1;
@@ -498,25 +498,28 @@ namespace multiplayer {
         otherSprite.vy = packet.arg5;
     }
 
-   
 
 
 
-    function socketOnMessage(packet: SocketPacket){
+
+    function socketOnMessage(packet: SocketPacket) {
         switch (packet.arg1) {
             case GameMessage.Update:
                 updatePlayerState(packet);
                 break;
             case GameMessage.CreateSprite:
                 createSprite(packet);
-                break
+                break;
             case GameMessage.HudUpdate:
                 updateHUD(packet);
-                break;    
+                break;
             case GameMessage.DestroySprite:
-                destroySprite(packet) ;
-                break;   
-           
+                destroySprite(packet);
+                break;
+            case GameMessage.SyncSprite:
+                getSyncSprite(packet);
+                break;
+
         }
     }
 
@@ -545,7 +548,7 @@ namespace multiplayer {
             readyCount -= game.eventContext().deltaTimeMillis;
             if (readyCount <= 0) {
 
-                if(funcOnConnected) funcOnConnected();
+                if (funcOnConnected) funcOnConnected();
                 programState = ProgramState.Playing;
                 return;
 
@@ -561,7 +564,7 @@ namespace multiplayer {
         }
     }
 
-   
+
 
     function isPlayerOne() {
         if (!useHWMultiplayer) return true;
