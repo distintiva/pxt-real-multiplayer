@@ -46,7 +46,7 @@ namespace multiplayer {
     let waitMessageText = "", waitMessageColor = 8, waitProgressBarColor = 8;
 
     //- Player 1 and Player 2 srpites
-    let pl1: Sprite, pl2: Sprite;
+    let pl1: Sprite = null, pl2: Sprite=null;
 
     let programState = ProgramState.Waiting;
 
@@ -226,6 +226,23 @@ namespace multiplayer {
         game.onShade(function () {
             waitForOtherPlayer();
 
+            if (useHWMultiplayer && programState === ProgramState.Disconnected ){
+                if (!sceneDisconnected){
+                    game.pushScene();
+                    sceneDisconnected = true;
+                    //scene.setBackgroundColor(6);
+                    
+                    const imDisc: Image = image.create(screen.width ,screen.height);
+                    imDisc.fill(0);
+                    imDisc.printCenter("CONNECTION", 30, 1, dbFont);
+                    imDisc.printCenter("LOST", 46, 1, dbFont);
+                    scene.setBackgroundImage(imDisc);
+                }
+                
+               
+            }   
+
+
         });
 
         socket.onConnect(function () {
@@ -235,10 +252,11 @@ namespace multiplayer {
             }
             else if (programState === ProgramState.Disconnected) {
                 programState = ProgramState.Playing;
-                console.log("ReConnect")
-                if (!sceneDisconnected) return;
-                sceneDisconnected = false;
-                game.popScene();
+                
+                if (sceneDisconnected){
+                    sceneDisconnected = false;
+                    game.popScene();
+                }
                 
             }
         });
@@ -246,20 +264,23 @@ namespace multiplayer {
         socket.onDisconnect(function () {
            
             if (programState === ProgramState.Playing) {
-           
+                
+                programState = ProgramState.Disconnected;
+
                 if (sceneDisconnected){
-                    game.popScene();
+                   // game.popScene();
                 }
-                sceneDisconnected = true;
+               /* sceneDisconnected = true;
                 game.pushScene();
            
                 game.onShade(function () {
                     if (!useHWMultiplayer) return ;
-                    console.log("onDisconn Shade ");
+                    //console.log("onDisconn Shade ");
                     screen.printCenter("CONNECTION", 30, 1, dbFont);
                     screen.printCenter("LOST", 46, 1, dbFont);
                 });
                 programState = ProgramState.Disconnected;
+                */
                 
             }
         });
