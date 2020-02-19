@@ -152,8 +152,10 @@ namespace multiplayer {
     //% text.defl=""
     //% sub.defl=""
     //% expandableArgumentMode="toggle"
-    export function drawTitle(text: string, sub: string, color: number): void {
+    export function drawTitle(text: string, sub: string=null, color: number=1): void {
         waitTitle = text;
+        
+        if (sub == null) sub = "";
         waitSubtitle = sub;
         waitTitleColor = color;
     }
@@ -218,6 +220,8 @@ namespace multiplayer {
     let offset = 0;
     let flip = true;
     let readyCount = 3000;
+    let sceneDisconnected = false; //- if there is any scene to print disconnection
+
     function startMultiplayer(){
         game.onShade(function () {
             waitForOtherPlayer();
@@ -230,19 +234,33 @@ namespace multiplayer {
                 readyCount = 4000;
             }
             else if (programState === ProgramState.Disconnected) {
+                programState = ProgramState.Playing;
+                console.log("ReConnect")
+                if (!sceneDisconnected) return;
+                sceneDisconnected = false;
                 game.popScene();
+                
             }
         });
 
         socket.onDisconnect(function () {
+           
             if (programState === ProgramState.Playing) {
+           
+                if (sceneDisconnected){
+                    game.popScene();
+                }
+                sceneDisconnected = true;
                 game.pushScene();
+           
                 game.onShade(function () {
                     if (!useHWMultiplayer) return ;
+                    console.log("onDisconn Shade ");
                     screen.printCenter("CONNECTION", 30, 1, dbFont);
                     screen.printCenter("LOST", 46, 1, dbFont);
                 });
                 programState = ProgramState.Disconnected;
+                
             }
         });
 
@@ -258,7 +276,7 @@ namespace multiplayer {
     }
 
 
-    game.onUpdateInterval(100, () => {
+    /*game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
@@ -274,7 +292,7 @@ namespace multiplayer {
                 }
         }
 
-    });
+    });*/
 
     let newCreated: Sprite[] = [];
 
