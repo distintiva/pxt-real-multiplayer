@@ -19,7 +19,8 @@ namespace multiplayer {
         Update = 7,
         HudUpdate = 11,
         CreateSprite = 20,
-        DestroySprite = 21
+        DestroySprite = 21,
+        SyncSprite = 22
     }
 
     export enum Players12 {
@@ -215,6 +216,16 @@ namespace multiplayer {
     }
 
 
+    //%  block="sync sprite %proy=variables_get(sprite1) "
+    export function syncThisSprite(sp: Sprite): void {
+
+       syncSprite(sp);
+
+       
+    }
+
+
+
     //===================================================================================
 
     let offset = 0;
@@ -363,10 +374,37 @@ namespace multiplayer {
         packet.arg6 = sprite.vy;
         packet.arg7 = sprite.data;
         
+
+        
+
         packet.arg9_32 = getImageId(sprite.image);
         packet.arg10_32 = sprite.id;
 
-        socket.sendCustomMessage(packet);
+        const packet2 = new SocketPacket();
+        packet2.arg1 = GameMessage.SyncSprite;
+        packet2.add16( sprite.kind() );
+        packet2.add16( sprite.id );
+        packet2.add8( sprite.x );
+        packet2.add8(sprite.y );
+
+        
+        socket.sendCustomMessage(packet2);
+
+    }
+
+    function getSyncSprite(packet: SocketPacket){
+        const kind = packet.get16();
+        const id = packet.get16();
+        const x = packet.get8();
+        const y = packet.get8();
+
+        const sp:Sprite = sprites.allOfKind(kind).find(s => s.id == id);
+
+        if (sp == undefined ) return;
+
+        sp.setPosition(x, y);
+
+
 
     }
 

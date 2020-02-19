@@ -29,10 +29,10 @@ namespace multiplayer {
         for (let f = 0; f < im.height; f++) {
             for (let c = 0; c < im.width; c++) {
                 let px = im.getPixel(f, c);
-                imcrc += px * c + (c * f);
+                imcrc +=px * ( c + (c * f) );
             }
         }
-        return imcrc
+        return 0;
     }
 
 

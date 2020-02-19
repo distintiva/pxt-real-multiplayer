@@ -20,14 +20,49 @@ namespace multiplayer {
     }
 
     export class SocketPacket {
-        constructor(public readonly data?: Buffer) {
-            if (!this.data) this.data = control.createBuffer(32);
+        public pointer:number = 9;
+        constructor(public  data?: Buffer) {
+            if (!this.data) this.data = control.createBuffer(9);
         }
 
         get toString(): string {
+
             return this.data.toHex();
         }
-        
+
+
+        public add8(val: number) {
+            const buff = control.createBuffer(1);
+            buff.setNumber(NumberFormat.Int8LE, 0, val)
+            this.data = this.data.concat(buff)
+        }
+        public add16( val:number ){
+            const buff = control.createBuffer(2);
+            buff.setNumber(NumberFormat.Int16LE, 0, val)
+            this.data = this.data.concat(buff)
+        }
+        public add32(val: number) {
+            const buff = control.createBuffer(4);
+            buff.setNumber(NumberFormat.Int32LE, 0, val)
+            this.data = this.data.concat(buff)
+        }
+
+        public get8(){
+            const v = this.data.getNumber(NumberFormat.UInt8LE, this.pointer);
+            this.pointer+=1;
+            return v;
+        }
+        public get16() {
+            const v = this.data.getNumber(NumberFormat.UInt16LE, this.pointer);
+            this.pointer += 2;
+            return v;
+        }
+        public get32() {
+            const v = this.data.getNumber(NumberFormat.UInt32LE, this.pointer);
+            this.pointer += 8;
+            return v;
+        }
+
         get messageType(): SocketMessages {
             return this.data[0];
         }
