@@ -375,17 +375,22 @@ namespace multiplayer {
         packet.arg7 = sprite.data;
 
 
-
-
-        packet.arg9_32 = getImageId(sprite.image);
+//        packet.arg9_32 = getImageId(sprite.image);
         packet.arg10_32 = sprite.id;
 
-        const packet2 = new SocketPacket();
+        let packet2 = new SocketPacket();
         packet2.arg1 = GameMessage.SyncSprite;
         packet2.add16(sprite.kind());
         packet2.add16(sprite.id);
         packet2.add8(sprite.x);
         packet2.add8(sprite.y);
+        packet2.add8(sprite.vx);
+        packet2.add8(sprite.vy);
+        packet2.add8(sprite.data);
+        packet2.add32(getImageId(sprite.image)  );
+
+        console.log("IMAGE send:" + getImageId(sprite.image));
+        
 
 
         socket.sendCustomMessage(packet2);
@@ -393,16 +398,35 @@ namespace multiplayer {
     }
 
     function getSyncSprite(packet: SocketPacket) {
-        const kind = packet.get16();
-        const id = packet.get16();
-        const x = packet.get8();
-        const y = packet.get8();
+        let kind = packet.get16();
+        let id = packet.get16();
+        let x = packet.get8();
+        let y = packet.get8();
+        let vx = packet.get8();
+        let vy = packet.get8();
+        let data = packet.get8();
+        let imId = packet.get32();
 
-        const sp: Sprite = sprites.allOfKind(kind).find(s => s.id == id);
+        console.log("IMAGE Get:" + imId );
 
-        if (sp == undefined) return;
 
-        sp.setPosition(x, y);
+        let sp: Sprite = sprites.allOfKind(kind).find(s => s.id == id);
+
+        if (sp == undefined) {
+            sp = sprites.create(syncedImages[ imId ]);
+        }
+
+        if (sp != undefined){
+            sp.setKind(kind)
+            sp.setPosition(x, y);
+            sp.setVelocity(vx, vy);
+            sp.data = data;
+            sp.setImage( syncedImages[imId] );
+            sp.id = id;
+
+            sp.setFlag(SpriteFlag.AutoDestroy, true);
+
+        }             
 
 
 

@@ -253,7 +253,7 @@ namespace multiplayer {
             if (this.intervalRef !== undefined) clearInterval(this.intervalRef);
 
             this.intervalRef = setInterval(() => {
-                if (this.state === SocketState.Connected && control.millis() - this.lastReceivedTime > this.timeout) {
+                if (this.state === SocketState.Connected && control.millis() - this.lastReceivedTime > (this.timeout)*2  ) {
                     this.state = SocketState.Disconnected;
                     if (this.disconnectListener) this.disconnectListener();
                 }

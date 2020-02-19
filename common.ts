@@ -32,7 +32,7 @@ namespace multiplayer {
                 imcrc +=px * ( c + (c * f) );
             }
         }
-        return 0;
+        return imcrc;
     }
 
 
