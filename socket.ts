@@ -48,17 +48,17 @@ namespace multiplayer {
         }
 
         public get8(){
-            const v = this.data.getNumber(NumberFormat.UInt8LE, this.pointer);
+            const v = this.data.getNumber(NumberFormat.Int8LE, this.pointer);
             this.pointer+=1;
             return v;
         }
         public get16() {
-            const v = this.data.getNumber(NumberFormat.UInt16LE, this.pointer);
+            const v = this.data.getNumber(NumberFormat.Int16LE, this.pointer);
             this.pointer += 2;
             return v;
         }
         public get32() {
-            const v = this.data.getNumber(NumberFormat.UInt32LE, this.pointer);
+            const v = this.data.getNumber(NumberFormat.Int32LE, this.pointer);
             this.pointer += 8;
             return v;
         }

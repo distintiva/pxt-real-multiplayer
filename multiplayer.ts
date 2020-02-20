@@ -119,6 +119,12 @@ namespace multiplayer {
         return isPlayerOne();
     }
 
+    //% blockId=gameStarted
+    //% block="playing game"
+    export function gameStarted(): boolean {
+       return programState == ProgramState.Playing
+    }
+
 
     //% blockId=onConnected block="on multiplayer connected"
     //% blockAllowMultiple=0
@@ -308,12 +314,12 @@ namespace multiplayer {
     }
 
 
-    /*game.onUpdateInterval(100, () => {
+    game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
             
-                while (newCreated.length){
+               /* while (newCreated.length){
 
                     const sprite: Sprite = newCreated[newCreated.length - 1];
 
@@ -321,14 +327,14 @@ namespace multiplayer {
                     syncSprite(sprite);    
                
                     newCreated.pop();
-                }
+                }*/
         }
 
-    });*/
+    });
 
     let newCreated: Sprite[] = [];
 
-    sprites.onCreated(SpriteKind.Enemy, function (sprite) {
+    /*sprites.onCreated(SpriteKind.Enemy, function (sprite) {
         newCreated.push(sprite);
     })
 
@@ -342,8 +348,9 @@ namespace multiplayer {
 
     sprites.onDestroyed(SpriteKind.Enemy, function (sprite) {
         sendDestroy(sprite);
-    })
+    })*/
 
+    
     function sendDestroy(sprite: Sprite) {
 
         const packet = new SocketPacket();
@@ -363,51 +370,41 @@ namespace multiplayer {
     }
 
 
-    function syncSprite(sprite: Sprite) {
+    function syncSprite(sprite: Sprite, pkHex: string = null): string {
 
-        const packet = new SocketPacket();
-        packet.arg1 = GameMessage.CreateSprite;
-        packet.arg2 = sprite.kind();
-        packet.arg3 = sprite.x;
-        packet.arg4 = sprite.y;
-        packet.arg5 = sprite.vx;
-        packet.arg6 = sprite.vy;
-        packet.arg7 = sprite.data;
-
-
-//        packet.arg9_32 = getImageId(sprite.image);
-        packet.arg10_32 = sprite.id;
-
-        let packet2 = new SocketPacket();
+        if (!sprite.data || sprite.data == undefined) sprite.data = isPlayer1()?1:2;
+      
+        const packet2 = new SocketPacket();
         packet2.arg1 = GameMessage.SyncSprite;
         packet2.add16(sprite.kind());
         packet2.add16(sprite.id);
-        packet2.add8(sprite.x);
-        packet2.add8(sprite.y);
-        packet2.add8(sprite.vx);
-        packet2.add8(sprite.vy);
+        packet2.add16(sprite.x);
+        packet2.add16(sprite.y);
+        packet2.add16(sprite.vx);
+        packet2.add16(sprite.vy);
         packet2.add8(sprite.data);
         packet2.add32(getImageId(sprite.image)  );
 
-        console.log("IMAGE send:" + getImageId(sprite.image));
-        
+        const pkStr = packet2.toString;
+        if (pkHex==null  || (pkHex != null && pkHex != pkStr))  {        
+            socket.sendCustomMessage(packet2);
+        }
 
-
-        socket.sendCustomMessage(packet2);
+        return pkStr;
 
     }
 
     function getSyncSprite(packet: SocketPacket) {
         let kind = packet.get16();
         let id = packet.get16();
-        let x = packet.get8();
-        let y = packet.get8();
-        let vx = packet.get8();
-        let vy = packet.get8();
+        let x = packet.get16();
+        let y = packet.get16();
+        let vx = packet.get16();
+        let vy = packet.get16();
         let data = packet.get8();
         let imId = packet.get32();
 
-        console.log("IMAGE Get:" + imId );
+       // console.log("IMAGE Get:" + imId );
 
 
         let sp: Sprite = sprites.allOfKind(kind).find(s => s.id == id);
@@ -464,7 +461,14 @@ namespace multiplayer {
     function sendPlayerState(kind = GameMessage.Update, arg = 0) {
         const playerSprite = isPlayerOne() ? pl1 : pl2;
 
-        const packet = new SocketPacket();
+        if (playerSprite == null ) return;
+
+        const packetStr: string = syncSprite(playerSprite, lastPlayerPacket );
+        lastPlayerPacket = packetStr;
+
+        return;
+
+       /* const packet = new SocketPacket();
         packet.arg1 = kind;
         packet.arg2 = playerSprite.x;
         packet.arg3 = playerSprite.y;
@@ -477,7 +481,7 @@ namespace multiplayer {
 
         lastPlayerPacket = packet.toString;
 
-        socket.sendCustomMessage(packet);
+        socket.sendCustomMessage(packet);*/
 
         if (isPlayerOne()) {
             sendHUD();
