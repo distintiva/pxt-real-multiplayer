@@ -280,20 +280,7 @@ namespace multiplayer {
 
                 programState = ProgramState.Disconnected;
 
-                if (sceneDisconnected) {
-                    // game.popScene();
-                }
-                /* sceneDisconnected = true;
-                 game.pushScene();
-            
-                 game.onShade(function () {
-                     if (!useHWMultiplayer) return ;
-                     //console.log("onDisconn Shade ");
-                     screen.printCenter("CONNECTION", 30, 1, dbFont);
-                     screen.printCenter("LOST", 46, 1, dbFont);
-                 });
-                 programState = ProgramState.Disconnected;
-                 */
+               
 
             }
         });
@@ -310,7 +297,7 @@ namespace multiplayer {
     }
 
 
-   game.onUpdateInterval(100, () => {
+   game.onUpdateInterval(1000, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
@@ -330,24 +317,7 @@ namespace multiplayer {
 
     let newCreated: Sprite[] = [];
 
-    /*sprites.onCreated(SpriteKind.Enemy, function (sprite) {
-        newCreated.push(sprite);
-    })
-
-    sprites.onCreated(SpriteKind.Projectile, function (sprite) {
-        newCreated.push(sprite);
-    })
-
-    sprites.onCreated(SpriteKind.Food, function (sprite) {
-        newCreated.push(sprite);
-    })
-
-    sprites.onDestroyed(SpriteKind.Enemy, function (sprite) {
-        sendDestroy(sprite);
-    })*/
-
-
-   
+    
 
     controller.anyButton.onEvent(ControllerButtonEvent.Pressed, function () {
         if(useHWMultiplayer && programState == ProgramState.Playing){
@@ -377,16 +347,19 @@ namespace multiplayer {
 
         const sp = sprites.allOfKind( kind ).find(s => s.id == id);
 
-        if (sp != undefined && sp) sp.destroy();
+        if (sp != undefined && sp){
+            console.log(" DESTROY ====== " + id);
+             sp.destroy();
+        }
 
     }
 
 
     function syncSprite(sprite: Sprite, pkHex: string = null): string {
 
-        if (!sprite.data || sprite.data == undefined){
+        if (sprite.data!=1 &&  sprite.data != 2){
              sprite.data = isPlayer1()?1:2;
-             sprite.id = sprite.data * 1000;
+             sprite.id = sprite.id+sprite.data * 1000;
         }
       
         const packet2 = new SocketPacket();
@@ -403,7 +376,7 @@ namespace multiplayer {
         const pkStr = packet2.toString;
         if (pkHex==null  || (pkHex != null && pkHex != pkStr))  {        
             socket.sendCustomMessage(packet2);
-            console.log("> SEND:" + sprite.id);
+            console.log("> SEND: ---------" + sprite.id);
         }
 
         return pkStr;
@@ -427,7 +400,7 @@ namespace multiplayer {
 
         if (sp == undefined) {
             sp = sprites.create(syncedImages[ imId ]);
-            console.log("> RECV create:" + id);
+            console.log("> RECV create   :" + id);
         }
 
         if (sp != undefined){
@@ -464,6 +437,7 @@ namespace multiplayer {
         if (packetStr == lastPlayerPacket) {
             return;
         }
+        lastPlayerPacket = packetStr;
 
         socket.sendCustomMessage(packet2);
 

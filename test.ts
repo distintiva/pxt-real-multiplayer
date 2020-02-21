@@ -13,9 +13,8 @@ namespace SpriteKind {
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
 
 
-
-    mySprite.destroy();
-
+    
+ 
 
 
 
