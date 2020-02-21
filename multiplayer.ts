@@ -297,7 +297,7 @@ namespace multiplayer {
     }
 
 
-   game.onUpdateInterval(1000, () => {
+   game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
