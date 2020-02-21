@@ -3,11 +3,23 @@ namespace SpriteKind {
     export const PJ2 = SpriteKind.create()
 }
 
- 
+ console.log("a");
+
+
+
 
 
 
 controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
+
+
+
+    mySprite.destroy();
+
+
+
+
+
 
     rand = sprites.create(img`
         f f f f f f f f f f f f f f f f
@@ -52,6 +64,9 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
    
 
 })
+
+
+
 
 sprites.onCreated(0, function (sprite: Sprite) {
     console.log("ID2:" + sprite.id);

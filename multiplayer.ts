@@ -18,9 +18,8 @@ namespace multiplayer {
     export enum GameMessage {
         Update = 7,
         HudUpdate = 11,
-        CreateSprite = 20,
-        DestroySprite = 21,
-        SyncSprite = 22
+        SyncSprite = 14,
+        DestroySprite = 18        
     }
 
     export enum Players12 {
@@ -79,17 +78,13 @@ namespace multiplayer {
             startSimulated();
 
             controller.player2.onButtonEvent(ControllerButton.A, ControllerButtonEvent.Pressed, function () {
-
                 controller.A.setPressed(true);
                 controller.A.setPressed(false);
-
             })
 
             controller.player2.onButtonEvent(ControllerButton.B, ControllerButtonEvent.Pressed, function () {
-
                 controller.B.setPressed(true);
                 controller.B.setPressed(false);
-
             })
 
         }
@@ -196,6 +191,7 @@ namespace multiplayer {
         } else {
             controller.moveSprite(pl2, vx, vy);
         }
+        
 
         //- on simulator mode
         if (!useHWMultiplayer) {
@@ -314,7 +310,7 @@ namespace multiplayer {
     }
 
 
-    game.onUpdateInterval(100, () => {
+   game.onUpdateInterval(100, () => {
         if (programState == ProgramState.Playing && useHWMultiplayer) {
             sendPlayerState();
 
@@ -350,20 +346,36 @@ namespace multiplayer {
         sendDestroy(sprite);
     })*/
 
+
+   
+
+    controller.anyButton.onEvent(ControllerButtonEvent.Pressed, function () {
+        if(useHWMultiplayer && programState == ProgramState.Playing){
+            sendPlayerState();
+        }
+    })
+    controller.anyButton.onEvent(ControllerButtonEvent.Released, function () {
+        if (useHWMultiplayer && programState == ProgramState.Playing) {
+            sendPlayerState();
+        }
+    })
+
     
     function sendDestroy(sprite: Sprite) {
 
         const packet = new SocketPacket();
         packet.arg1 = GameMessage.DestroySprite;
-        packet.arg2 = sprite.kind();
-        packet.arg3 = sprite.id;
-
+        packet.add16( sprite.kind() );
+        packet.add16( sprite.id );
+        
         socket.sendCustomMessage(packet);
     }
 
     function destroySprite(packet: SocketPacket) {
+        const kind = packet.get16();
+        const id = packet.get16();
 
-        const sp = sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg3);
+        const sp = sprites.allOfKind( kind ).find(s => s.id == id);
 
         if (sp != undefined && sp) sp.destroy();
 
@@ -372,7 +384,10 @@ namespace multiplayer {
 
     function syncSprite(sprite: Sprite, pkHex: string = null): string {
 
-        if (!sprite.data || sprite.data == undefined) sprite.data = isPlayer1()?1:2;
+        if (!sprite.data || sprite.data == undefined){
+             sprite.data = isPlayer1()?1:2;
+             sprite.id = sprite.data * 1000;
+        }
       
         const packet2 = new SocketPacket();
         packet2.arg1 = GameMessage.SyncSprite;
@@ -388,6 +403,7 @@ namespace multiplayer {
         const pkStr = packet2.toString;
         if (pkHex==null  || (pkHex != null && pkHex != pkStr))  {        
             socket.sendCustomMessage(packet2);
+            console.log("> SEND:" + sprite.id);
         }
 
         return pkStr;
@@ -411,6 +427,7 @@ namespace multiplayer {
 
         if (sp == undefined) {
             sp = sprites.create(syncedImages[ imId ]);
+            console.log("> RECV create:" + id);
         }
 
         if (sp != undefined){
@@ -429,62 +446,29 @@ namespace multiplayer {
 
     }
 
-    function createSprite(packet: SocketPacket) {
-
-        //- exists sprite with this id ?
-
-        if (sprites.allOfKind(packet.arg2).find(s => s.id == packet.arg10_32)) {
-            //console.log("EXISTS " + packet.arg10_32);
-            return;
-        }
-
-
-        let spriteImageId = packet.arg9_32;
-        const sprite = sprites.create(syncedImages[spriteImageId]);
-
-        sprite.setFlag(SpriteFlag.AutoDestroy, true);
-
-        sprite.setKind(packet.arg2);
-        sprite.x = packet.arg3;
-        sprite.y = packet.arg4;
-        sprite.vx = packet.arg5;
-        sprite.vy = packet.arg6;
-        sprite.data = packet.arg7;
-
-        sprite.id = packet.arg10_32;
-
-        sprite.setFlag(SpriteFlag.AutoDestroy, true);
-
-    }
+   
 
     let lastPlayerPacket: string = "";
     function sendPlayerState(kind = GameMessage.Update, arg = 0) {
         const playerSprite = isPlayerOne() ? pl1 : pl2;
 
-        if (playerSprite == null ) return;
+        const packet2 = new SocketPacket();
+        packet2.arg1 = GameMessage.Update;
+        packet2.add16(playerSprite.x);
+        packet2.add16(playerSprite.y);
+        packet2.add16(playerSprite.vx);
+        packet2.add16(playerSprite.vy);
+        packet2.add32(getImageId(playerSprite.image));
 
-        const packetStr: string = syncSprite(playerSprite, lastPlayerPacket );
-        lastPlayerPacket = packetStr;
-
-        return;
-
-       /* const packet = new SocketPacket();
-        packet.arg1 = kind;
-        packet.arg2 = playerSprite.x;
-        packet.arg3 = playerSprite.y;
-        packet.arg4 = playerSprite.vx;
-        packet.arg5 = playerSprite.vy;
-
-        if (packet.toString == lastPlayerPacket) {
+        const packetStr:string = packet2.toString;
+        if (packetStr == lastPlayerPacket) {
             return;
         }
 
-        lastPlayerPacket = packet.toString;
-
-        socket.sendCustomMessage(packet);*/
+        socket.sendCustomMessage(packet2);
 
         if (isPlayerOne()) {
-            sendHUD();
+     //       sendHUD();
         }
     }
 
@@ -520,10 +504,14 @@ namespace multiplayer {
     function updatePlayerState(packet: SocketPacket) {
 
         const otherSprite = isPlayerOne() ? pl2 : pl1;
-        otherSprite.x = packet.arg2;
-        otherSprite.y = packet.arg3;
-        otherSprite.vx = packet.arg4;
-        otherSprite.vy = packet.arg5;
+
+        otherSprite.x = packet.get16();
+        otherSprite.y = packet.get16();
+        otherSprite.vx = packet.get16();
+        otherSprite.vy = packet.get16();
+
+        otherSprite.setImage(syncedImages[packet.get32()]  );
+
     }
 
 
@@ -534,9 +522,6 @@ namespace multiplayer {
         switch (packet.arg1) {
             case GameMessage.Update:
                 updatePlayerState(packet);
-                break;
-            case GameMessage.CreateSprite:
-                createSprite(packet);
                 break;
             case GameMessage.HudUpdate:
                 updateHUD(packet);
@@ -578,7 +563,17 @@ namespace multiplayer {
 
                 if (funcOnConnected) funcOnConnected();
                 programState = ProgramState.Playing;
-                return;
+
+                //- start game multiplayer ------
+
+                //- handle and sync every sprite destroyed
+                for (let c = 1000; c < 1100; c++) {
+                    sprites.onDestroyed(c, function (sprite: Sprite) {
+                        sendDestroy(sprite);
+                    })
+                }
+                               
+                    return;
 
             }
 
