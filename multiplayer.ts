@@ -344,6 +344,7 @@ namespace multiplayer {
         packet.arg1 = GameMessage.DestroySprite;
         packet.add16( sprite.id );
         
+
         socket.sendCustomMessage(packet);
     }
 
@@ -405,10 +406,12 @@ namespace multiplayer {
 
         if (sp == undefined) {
             sp = sprites.create(syncedImages[ imId ]);
-            console.log("> RECV create   :" + id);
+            console.log("> RECVs create   :" + id);
 
             sp.setKind(kind)
             sp.id = id;
+
+            sp.flags|=  sprites.Flag.AutoDestroy | sprites.Flag.DestroyOnWall;
 
         }
 
@@ -421,8 +424,7 @@ namespace multiplayer {
             sp.data = data;
             sp.setImage( syncedImages[imId] );
             
-
-            sp.setFlag(SpriteFlag.AutoDestroy, true);
+           
 
         }             
 
@@ -557,11 +559,29 @@ namespace multiplayer {
                 //- start game multiplayer ------
 
                 //- handle and sync every sprite destroyed
-                for (let c = 1000; c < 1100; c++) {
+                for (let c = 1000; c < 1050; c++) {
                     sprites.onDestroyed(c, function (sprite: Sprite) {
                       if(isPlayerOne)  sendDestroy(sprite);
                     })
                 }
+
+                //- handle and sync every sprite created
+                for (let c = 1000; c < 1050; c++) {
+                    sprites.onCreated(c, function (sprite: Sprite) {
+                        if ( programState== ProgramState.Playing ){
+                            setInterval(function () {
+                                syncThisSprite(sprite);
+                            }, 50)
+                        }
+                    })
+                }
+                sprites.onCreated(SpriteKind.Projectile, function (sprite: Sprite) {
+                    if (programState == ProgramState.Playing) {
+                        setInterval(function () {
+                            syncThisSprite(sprite);
+                        }, 50)
+                    }
+                })
                                
                     return;
 
