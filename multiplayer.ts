@@ -342,17 +342,15 @@ namespace multiplayer {
 
         const packet = new SocketPacket();
         packet.arg1 = GameMessage.DestroySprite;
-        packet.add16( sprite.kind() );
         packet.add16( sprite.id );
         
         socket.sendCustomMessage(packet);
     }
 
     function destroySprite(packet: SocketPacket) {
-        const kind = packet.get16();
         const id = packet.get16();
 
-        const sp = sprites.allOfKind( kind ).find(s => s.id == id);
+        const sp = syncedSprites[id]; //sprites.allOfKind( kind ).find(s => s.id == id);
 
         if (sp != undefined && sp){
             console.log(" DESTROY ====== " + id);
@@ -408,15 +406,21 @@ namespace multiplayer {
         if (sp == undefined) {
             sp = sprites.create(syncedImages[ imId ]);
             console.log("> RECV create   :" + id);
+
+            sp.setKind(kind)
+            sp.id = id;
+
         }
 
+        if (syncedSprites[id] == undefined) syncedSprites[id] = sp;
+
         if (sp != undefined){
-            sp.setKind(kind)
+            
             sp.setPosition(x, y);
             sp.setVelocity(vx, vy);
             sp.data = data;
             sp.setImage( syncedImages[imId] );
-            sp.id = id;
+            
 
             sp.setFlag(SpriteFlag.AutoDestroy, true);
 
@@ -429,6 +433,7 @@ namespace multiplayer {
    
 
     let lastPlayerPacket: string = "";
+    let plCount:number =0;
     function sendPlayerState(kind = GameMessage.Update, arg = 0) {
         const playerSprite = isPlayerOne() ? pl1 : pl2;
 
@@ -442,7 +447,11 @@ namespace multiplayer {
 
         const packetStr:string = packet2.toString;
         if (packetStr == lastPlayerPacket) {
-            return;
+            plCount++;
+
+            if(plCount>=2)  return;
+        }else{
+            plCount=0;
         }
         lastPlayerPacket = packetStr;
 

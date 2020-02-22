@@ -35,5 +35,12 @@ namespace multiplayer {
         return imcrc;
     }
 
+    //- Sprite Syncing
+    export interface SHash {
+        [details: number]: Sprite;
+    }
+
+    // { sprite-id: sprite}
+    export let syncedSprites: SHash = {};
 
 }
