@@ -59,7 +59,7 @@ namespace multiplayer {
         }
         public get32() {
             const v = this.data.getNumber(NumberFormat.Int32LE, this.pointer);
-            this.pointer += 8;
+            this.pointer += 4;
             return v;
         }
 

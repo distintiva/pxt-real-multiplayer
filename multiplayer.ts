@@ -550,7 +550,7 @@ namespace multiplayer {
                 //- handle and sync every sprite destroyed
                 for (let c = 1000; c < 1100; c++) {
                     sprites.onDestroyed(c, function (sprite: Sprite) {
-                        sendDestroy(sprite);
+                      if(isPlayerOne)  sendDestroy(sprite);
                     })
                 }
                                
