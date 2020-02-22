@@ -14,7 +14,10 @@ controller.B.onEvent(ControllerButtonEvent.Pressed, function () {
 
 
     
- 
+    let sp: Sprite = sprites.allOfKind(SpriteKind.PJ1).find(s => s.id == 0);
+
+    console.log(sp);
+
 
 
 

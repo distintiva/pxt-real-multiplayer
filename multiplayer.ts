@@ -114,6 +114,13 @@ namespace multiplayer {
         return isPlayerOne();
     }
 
+    //% blockId=inMaster
+    //% block="executed in master"
+    export function inMaster(): boolean {
+
+        return isPlayerOne();
+    }
+
     //% blockId=gameStarted
     //% block="playing game"
     export function gameStarted(): boolean {
